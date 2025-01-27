@@ -1,6 +1,6 @@
-using OvRenderingCS.Data;
+//using NovoEngine.Rendering.Data;
 
-namespace OvRenderingCS.Settings
+namespace NovoEngine.Rendering.Settings
 {
     /// <summary>
     /// Settings for configuring the graphics driver
@@ -40,7 +40,7 @@ namespace OvRenderingCS.Settings
         /// <summary>
         /// Default pipeline state
         /// </summary>
-        public PipelineState? DefaultPipelineState { get; set; }
+        //public PipelineState? DefaultPipelineState { get; set; }
 
         /// <summary>
         /// Enable debug mode

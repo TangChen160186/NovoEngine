@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Data
+namespace NovoEngine.Rendering.Data
 {
     /// <summary>
     /// Describes the properties of a frame to be rendered

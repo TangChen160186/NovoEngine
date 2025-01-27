@@ -1,117 +1,253 @@
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using NovoEngine.Rendering.Resources;
 
-namespace OvRenderingCS.Buffers
+namespace NovoEngine.Rendering.Buffers;
+
+/// <summary>
+/// OpenGL Framebuffer Object wrapper
+/// </summary>
+public class Framebuffer : IDisposable
 {
+    private readonly Dictionary<FramebufferAttachment, ITexture> _colorTextures;
+    private ITexture? _depthTexture;
+    private bool _isComplete;
+
     /// <summary>
-    /// OpenGL Framebuffer Object wrapper
+    /// Gets the size of the framebuffer
     /// </summary>
-    public class Framebuffer : IDisposable
+    public Vector2i Size { get; private set; }
+
+    /// <summary>
+    /// Gets the OpenGL handle of the framebuffer
+    /// </summary>
+    public int Handle { get; }
+
+    /// <summary>
+    /// Creates a new framebuffer with color and depth attachments
+    /// </summary>
+    /// <param name="width">Width of the framebuffer</param>
+    /// <param name="height">Height of the framebuffer</param>
+    /// <param name="colorFormat">Format for color attachments</param>
+    /// <param name="attachmentCount">Number of color attachments</param>
+    /// <param name="hasDepth">Whether to create a depth attachment</param>
+    public Framebuffer(int width, int height, InternalFormat colorFormat = InternalFormat.Srgb8,
+        int attachmentCount = 1, bool hasDepth = true)
     {
-        private readonly int _handle;
-        private readonly Dictionary<FramebufferAttachment, int> _colorAttachments;
-        private int? _depthAttachment;
-        private Vector2i _size;
+        if (width <= 0 || height <= 0)
+            throw new ArgumentException("Width and height must be positive");
+        if (attachmentCount <= 0)
+            throw new ArgumentException("Must have at least one color attachment");
 
-        /// <summary>
-        /// Creates a new framebuffer
-        /// </summary>
-        /// <param name="width">Width of the framebuffer</param>
-        /// <param name="height">Height of the framebuffer</param>
-        public Framebuffer(int width, int height)
+        Handle = GL.GenFramebuffer();
+        Size = new Vector2i(width, height);
+        _colorTextures = new Dictionary<FramebufferAttachment, ITexture>();
+
+        Bind();
+
+        // Create color attachments
+        var drawBuffers = new List<DrawBuffersEnum>();
+        for (int i = 0; i < attachmentCount; i++)
         {
-            _handle = GL.GenFramebuffer();
-            _colorAttachments = new Dictionary<FramebufferAttachment, int>();
-            _size = new Vector2i(width, height);
+            var attachment = FramebufferAttachment.ColorAttachment0 + i;
+            var colorTexture = CreateColorTexture(width, height, colorFormat);
+            AttachTexture(attachment, colorTexture);
+            drawBuffers.Add(DrawBuffersEnum.ColorAttachment0 + i);
         }
 
-        /// <summary>
-        /// Bind the framebuffer
-        /// </summary>
-        public void Bind()
+        // Set draw buffers
+        GL.DrawBuffers(drawBuffers.Count, drawBuffers.ToArray());
+
+        // Create depth attachment if needed
+        if (hasDepth)
         {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _handle);
+            _depthTexture = CreateDepthTexture(width, height);
+            AttachTexture(FramebufferAttachment.DepthAttachment, _depthTexture);
         }
 
-        /// <summary>
-        /// Unbind the framebuffer
-        /// </summary>
-        public void Unbind()
+        _isComplete = CheckFramebufferStatus();
+        Unbind();
+
+        if (!_isComplete)
         {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            Dispose();
+            throw new Exception("Failed to create framebuffer");
         }
+    }
 
-        /// <summary>
-        /// Attach a texture to the framebuffer
-        /// </summary>
-        public void AttachTexture(FramebufferAttachment attachment, int textureHandle)
+    /// <summary>
+    /// Resize the framebuffer and all its attachments
+    /// </summary>
+    public void Resize(int width, int height)
+    {
+        if (width <= 0 || height <= 0)
+            throw new ArgumentException("Width and height must be positive");
+        if (width == Size.X && height == Size.Y) return;
+
+        Size = new Vector2i(width, height);
+        Bind();
+
+        // Resize color attachments
+        foreach (var kvp in _colorTextures)
         {
-            Bind();
-
+            var texture = kvp.Value;
+            texture.Resize(width, height);
             GL.FramebufferTexture2D(
                 FramebufferTarget.Framebuffer,
-                attachment,
-                TextureTarget.Texture2D,
-                textureHandle,
+                kvp.Key,
+                TextureTarget.Texture2d,
+                texture.Handle,
                 0
             );
-
-            if (attachment == FramebufferAttachment.DepthAttachment)
-            {
-                _depthAttachment = textureHandle;
-            }
-            else
-            {
-                _colorAttachments[attachment] = textureHandle;
-            }
-
-            CheckFramebufferStatus();
         }
 
-        /// <summary>
-        /// Check if the framebuffer is complete
-        /// </summary>
-        private void CheckFramebufferStatus()
+        // Resize depth attachment
+        if (_depthTexture != null)
         {
-            var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-            if (status != FramebufferStatus.FramebufferComplete)
-            {
-                throw new Exception($"Framebuffer is not complete. Status: {status}");
-            }
+            _depthTexture.Resize(width, height);
+            GL.FramebufferTexture2D(
+                FramebufferTarget.Framebuffer,
+                FramebufferAttachment.DepthAttachment,
+                TextureTarget.Texture2d,
+                _depthTexture.Handle,
+                0
+            );
         }
 
-        /// <summary>
-        /// Gets the color attachment texture handle
-        /// </summary>
-        public int GetColorAttachment(FramebufferAttachment attachment)
+        _isComplete = CheckFramebufferStatus();
+        Unbind();
+
+        if (!_isComplete)
         {
-            return _colorAttachments.TryGetValue(attachment, out int handle) ? handle : 0;
+            throw new Exception("Failed to resize framebuffer");
         }
+    }
 
-        /// <summary>
-        /// Gets the depth attachment texture handle
-        /// </summary>
-        public int? GetDepthAttachment()
+    private ITexture CreateColorTexture(int width, int height, PixelInternalFormat format)
+    {
+        var texture = new Texture2D();
+        texture.SetData(width, height, (byte[])null!, format);
+        texture.SetParameters(
+            TextureMinFilter.Linear,
+            TextureMagFilter.Linear,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge
+        );
+        return texture;
+    }
+
+    private ITexture CreateDepthTexture(int width, int height)
+    {
+        var texture = new Texture2D();
+        texture.SetData(width, height, (byte[])null!, PixelInternalFormat.DepthComponent24);
+        texture.SetParameters(
+            TextureMinFilter.Nearest,
+            TextureMagFilter.Nearest,
+            TextureWrapMode.ClampToEdge,
+            TextureWrapMode.ClampToEdge
+        );
+        return texture;
+    }
+
+    private void AttachTexture(FramebufferAttachment attachment, ITexture texture)
+    {
+        GL.FramebufferTexture2D(
+            FramebufferTarget.Framebuffer,
+            attachment,
+            TextureTarget.Texture2d,
+            texture.Handle,
+            0
+        );
+
+        if (attachment == FramebufferAttachment.DepthAttachment)
         {
-            return _depthAttachment;
+            _depthTexture = texture;
         }
-
-        /// <summary>
-        /// Gets the size of the framebuffer
-        /// </summary>
-        public Vector2i Size => _size;
-
-        /// <summary>
-        /// Gets the OpenGL handle of the framebuffer
-        /// </summary>
-        public int Handle => _handle;
-
-        /// <summary>
-        /// Dispose the framebuffer
-        /// </summary>
-        public void Dispose()
+        else
         {
-            GL.DeleteFramebuffer(_handle);
+            _colorTextures[attachment] = texture;
         }
+    }
+
+    /// <summary>
+    /// Get a color attachment texture
+    /// </summary>
+    public ITexture GetColorTexture(int index = 0)
+    {
+        var attachment = FramebufferAttachment.ColorAttachment0 + index;
+        return _colorTextures[attachment];
+    }
+
+    /// <summary>
+    /// Get the depth texture
+    /// </summary>
+    public ITexture? GetDepthTexture() => _depthTexture;
+
+    /// <summary>
+    /// Clear the framebuffer
+    /// </summary>
+    public void Clear(Color4? clearColor = null, bool clearDepth = true)
+    {
+        Bind();
+        ClearBufferMask mask = 0;
+
+        if (clearColor.HasValue)
+        {
+            GL.ClearColor(clearColor.Value);
+            mask |= ClearBufferMask.ColorBufferBit;
+        }
+
+        if (clearDepth && _depthTexture != null)
+        {
+            mask |= ClearBufferMask.DepthBufferBit;
+        }
+
+        if (mask != 0)
+        {
+            GL.Clear(mask);
+        }
+    }
+
+    /// <summary>
+    /// Check if the framebuffer is complete
+    /// </summary>
+    private bool CheckFramebufferStatus()
+    {
+        Bind();
+        var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+        if (status != FramebufferStatus.FramebufferComplete)
+        {
+            throw new Exception($"Framebuffer is not complete. Status: {status}");
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Bind the framebuffer
+    /// </summary>
+    public void Bind()
+    {
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
+    }
+
+    /// <summary>
+    /// Unbind the framebuffer
+    /// </summary>
+    public void Unbind()
+    {
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+    }
+
+    /// <summary>
+    /// Dispose the framebuffer
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var texture in _colorTextures.Values)
+        {
+            texture.Dispose();
+        }
+        _depthTexture?.Dispose();
+        GL.DeleteFramebuffer(Handle);
     }
 }

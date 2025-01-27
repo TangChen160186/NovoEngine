@@ -1,7 +1,6 @@
-using OpenTK.Graphics.OpenGL4;
-using OvRenderingCS.Settings;
+using NovoEngine.Rendering.Settings;
 
-namespace OvRenderingCS.Data
+namespace NovoEngine.Rendering.Data
 {
     /// <summary>
     /// Represents the state of the rendering pipeline

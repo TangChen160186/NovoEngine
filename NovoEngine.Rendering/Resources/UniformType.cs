@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Resources
+namespace NovoEngine.Rendering.Resources
 {
     /// <summary>
     /// Defines the types of uniforms that can be used in shaders

@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Resources.Parsers
+namespace NovoEngine.Rendering.Resources.Parsers
 {
     /// <summary>
     /// Interface for model parsers

@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Utils
+namespace NovoEngine.Rendering.Utils
 {
     /// <summary>
     /// Utility class for type conversions

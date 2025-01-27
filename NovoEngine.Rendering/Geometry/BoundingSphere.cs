@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Geometry
+namespace NovoEngine.Rendering.Geometry
 {
     /// <summary>
     /// Data structure that defines a bounding sphere (Position + radius)

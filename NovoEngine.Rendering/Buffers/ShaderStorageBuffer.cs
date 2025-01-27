@@ -1,117 +1,104 @@
-using OpenTK.Graphics.OpenGL4;
-using OvRenderingCS.Settings;
+using OpenTK.Graphics.OpenGL;
 
-namespace OvRenderingCS.Buffers
+namespace NovoEngine.Rendering.Buffers;
+
+/// <summary>
+/// OpenGL Shader Storage Buffer Object wrapper
+/// </summary>
+public class ShaderStorageBuffer : IDisposable
 {
     /// <summary>
-    /// OpenGL Shader Storage Buffer Object wrapper
+    /// Gets the size of the buffer in bytes
     /// </summary>
-    public class ShaderStorageBuffer : IDisposable
+    public int Size { get; private set; }
+
+    /// <summary>
+    /// Gets the OpenGL handle of the buffer
+    /// </summary>
+    public int Handle { get; }
+    /// <summary>
+    /// Creates a new shader storage buffer
+    /// </summary>
+    /// <param name="bindingPoint">Binding point index</param>
+    public ShaderStorageBuffer(
+        uint bindingPoint)
     {
-        private readonly int _handle;
-        private readonly EBufferUsage _usage;
-        private readonly EAccessSpecifier _accessSpecifier;
-        private int _size;
+        Handle = GL.GenBuffer();
+        // Initialize the buffer with empty data
+        Bind();
+        GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, bindingPoint, Handle);
+    }
 
-        /// <summary>
-        /// Creates a new shader storage buffer
-        /// </summary>
-        /// <param name="bindingPoint">Binding point index</param>
-        /// <param name="size">Size of the buffer in bytes</param>
-        /// <param name="usage">Buffer usage pattern</param>
-        /// <param name="accessSpecifier">Buffer access specifier</param>
-        public ShaderStorageBuffer(
-            uint bindingPoint,
-            int size,
-            EBufferUsage usage = EBufferUsage.DynamicDraw,
-            EAccessSpecifier accessSpecifier = EAccessSpecifier.ReadWrite)
+    /// <summary>
+    /// Bind the shader storage buffer
+    /// </summary>
+    public void Bind()
+    {
+        GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
+    }
+
+    /// <summary>
+    /// Unbind the shader storage buffer
+    /// </summary>
+    public void Unbind()
+    {
+        GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
+    }
+
+    /// <summary>
+    /// Update buffer data
+    /// </summary>
+    public unsafe void SetData<T>(T[] data) where T : unmanaged
+    {
+        int size = data.Length * sizeof(T);
+        Bind();
+
+        if (size != Size)
         {
-            _handle = GL.GenBuffer();
-            _usage = usage;
-            _accessSpecifier = accessSpecifier;
-            _size = size;
-
-            // Initialize the buffer with empty data
-            Bind();
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, size, IntPtr.Zero, ConvertBufferUsage(usage));
-            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, (int)bindingPoint, _handle);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, size, data,BufferUsage.DynamicDraw);
+            Size = size;
         }
-
-        /// <summary>
-        /// Bind the shader storage buffer
-        /// </summary>
-        public void Bind()
+        else
         {
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, _handle);
+            GL.BufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, size, data);
         }
+    }
 
-        /// <summary>
-        /// Unbind the shader storage buffer
-        /// </summary>
-        public void Unbind()
-        {
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
-        }
+    /// <summary>
+    /// Update a portion of the buffer data
+    /// </summary>
+    /// <typeparam name="T">Type of the data (must be unmanaged)</typeparam>
+    /// <param name="data">Array of data</param>
+    /// <param name="offset">Offset in bytes where to start updating</param>
+    public unsafe void SetSubData<T>(T[] data, uint offset) where T : unmanaged
+    {
+        int size = data.Length * sizeof(T);
+        if (offset + size > Size)
+            throw new ArgumentException("Data exceeds buffer size");
 
-        /// <summary>
-        /// Update buffer data
-        /// </summary>
-        public unsafe void SetData<T>(T[] data) where T : unmanaged
-        {
-            int size = data.Length * sizeof(T);
-            Bind();
+        Bind();
+        GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)offset, size, data);
+    }
+    /// <summary>
+    /// Get buffer data
+    /// </summary>
+    public unsafe void GetData<T>(T[] data) where T : unmanaged
+    {
+        int size = data.Length * sizeof(T);
+        if (size > Size)
+            throw new ArgumentException("Data buffer is larger than storage buffer");
 
-            if (size != _size)
-            {
-                GL.BufferData(BufferTarget.ShaderStorageBuffer, size, data, ConvertBufferUsage(_usage));
-                _size = size;
-            }
-            else
-            {
-                GL.BufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, size, data);
-            }
-        }
+        Bind();
+        GL.GetBufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, size, data);
+    }
 
-        /// <summary>
-        /// Get buffer data
-        /// </summary>
-        public unsafe void GetData<T>(T[] data) where T : unmanaged
-        {
-            int size = data.Length * sizeof(T);
-            if (size > _size)
-                throw new ArgumentException("Data buffer is larger than storage buffer");
 
-            Bind();
-            GL.GetBufferSubData(BufferTarget.ShaderStorageBuffer, IntPtr.Zero, size, data);
-        }
 
-        private BufferUsageHint ConvertBufferUsage(EBufferUsage usage)
-        {
-            return usage switch
-            {
-                EBufferUsage.StreamDraw => BufferUsageHint.StreamDraw,
-                EBufferUsage.StaticDraw => BufferUsageHint.StaticDraw,
-                EBufferUsage.DynamicDraw => BufferUsageHint.DynamicDraw,
-                _ => throw new ArgumentException($"Unsupported buffer usage: {usage}")
-            };
-        }
-
-        /// <summary>
-        /// Gets the size of the buffer in bytes
-        /// </summary>
-        public int Size => _size;
-
-        /// <summary>
-        /// Gets the OpenGL handle of the buffer
-        /// </summary>
-        public int Handle => _handle;
-
-        /// <summary>
-        /// Dispose the shader storage buffer
-        /// </summary>
-        public void Dispose()
-        {
-            GL.DeleteBuffer(_handle);
-        }
+    /// <summary>
+    /// Dispose the shader storage buffer
+    /// </summary>
+    public void Dispose()
+    {
+        GL.DeleteBuffer(Handle);
     }
 }

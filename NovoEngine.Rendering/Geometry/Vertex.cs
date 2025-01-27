@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Geometry
+namespace NovoEngine.Rendering.Geometry
 {
     /// <summary>
     /// Data structure that defines the geometry of a vertex

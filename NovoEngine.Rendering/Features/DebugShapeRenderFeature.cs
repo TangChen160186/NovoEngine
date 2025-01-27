@@ -1,10 +1,9 @@
-using OpenTK.Graphics.OpenGL4;
+using NovoEngine.Rendering.Buffers;
+using NovoEngine.Rendering.Entities;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OvRenderingCS.Buffers;
-using OvRenderingCS.Entities;
-using OvRenderingCS.Geometry;
 
-namespace OvRenderingCS.Features
+namespace NovoEngine.Rendering.Features
 {
     /// <summary>
     /// Render feature for debug shapes

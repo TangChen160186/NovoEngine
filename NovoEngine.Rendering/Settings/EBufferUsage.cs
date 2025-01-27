@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Settings
+namespace NovoEngine.Rendering.Settings
 {
     /// <summary>
     /// Defines how a buffer will be used

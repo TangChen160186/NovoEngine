@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Resources
+namespace NovoEngine.Rendering.Resources
 {
     /// <summary>
     /// Information about a uniform variable in a shader

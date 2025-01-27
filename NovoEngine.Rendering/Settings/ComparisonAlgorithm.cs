@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Settings
+namespace NovoEngine.Rendering.Settings
 {
     /// <summary>
     /// Defines comparison algorithms used in depth and stencil tests

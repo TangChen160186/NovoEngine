@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Geometry
+namespace NovoEngine.Rendering.Geometry
 {
     /// <summary>
     /// Utility class for generating basic geometric shapes

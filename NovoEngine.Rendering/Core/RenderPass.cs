@@ -1,7 +1,7 @@
-using OvRenderingCS.Context;
-using OvRenderingCS.Data;
+using NovoEngine.Rendering.Context;
+using NovoEngine.Rendering.Data;
 
-namespace OvRenderingCS.Core
+namespace NovoEngine.Rendering.Core
 {
     /// <summary>
     /// Abstract base class for render passes

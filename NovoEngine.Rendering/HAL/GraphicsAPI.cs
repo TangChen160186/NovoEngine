@@ -1,6 +1,4 @@
-using OpenTK.Graphics.OpenGL4;
-
-namespace OvRenderingCS.HAL
+namespace NovoEngine.Rendering.HAL
 {
     /// <summary>
     /// Hardware Abstraction Layer for graphics API

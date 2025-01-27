@@ -1,87 +1,121 @@
-using OpenTK.Graphics.OpenGL4;
-using OvRenderingCS.Settings;
+using NovoEngine.Rendering.Settings;
+using OpenTK.Graphics.OpenGL;
 
-namespace OvRenderingCS.Buffers
+namespace NovoEngine.Rendering.Buffers;
+
+/// <summary>
+/// OpenGL Index Buffer Object wrapper
+/// </summary>
+public class IndexBuffer : IDisposable
 {
+    private readonly EBufferUsage _usage;
+
     /// <summary>
-    /// OpenGL Index Buffer Object wrapper
+    /// Gets the size of the buffer in bytes
     /// </summary>
-    public class IndexBuffer : IDisposable
+    public int Size { get; private set; }
+
+    /// <summary>
+    /// Gets the number of indices in the buffer
+    /// </summary>
+    public int Count { get; private set; }
+
+    /// <summary>
+    /// Gets the OpenGL handle of the buffer
+    /// </summary>
+    public int Handle { get; }
+
+    /// <summary>
+    /// Creates a new index buffer
+    /// </summary>
+    /// <param name="usage">Buffer usage pattern</param>
+    public IndexBuffer(EBufferUsage usage = EBufferUsage.StaticDraw)
     {
-        private readonly int _handle;
-        private readonly EBufferUsage _usage;
-        private int _count;
+        Handle = GL.GenBuffer();
+        _usage = usage;
+        Size = 0;
+        Count = 0;
+    }
 
-        /// <summary>
-        /// Creates a new index buffer
-        /// </summary>
-        /// <param name="usage">Buffer usage pattern</param>
-        public IndexBuffer(EBufferUsage usage = EBufferUsage.StaticDraw)
+    /// <summary>
+    /// Bind the index buffer
+    /// </summary>
+    public void Bind()
+    {
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, Handle);
+    }
+
+    /// <summary>
+    /// Unbind the index buffer
+    /// </summary>
+    public void Unbind()
+    {
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+    }
+
+    /// <summary>
+    /// Set or update the buffer data
+    /// </summary>
+    public unsafe void SetData(uint[] data)
+    {
+        int size = data.Length * sizeof(uint);
+        Count = data.Length;
+        Bind();
+
+        switch (_usage)
         {
-            _handle = GL.GenBuffer();
-            _usage = usage;
-            _count = 0;
-        }
+            case EBufferUsage.DynamicDraw:
+            case EBufferUsage.StreamDraw:
+                // 对于动态/流数据，使用buffer orphaning
+                GL.BufferData(BufferTarget.ElementArrayBuffer, size, data, ConvertBufferUsage(_usage));
+                Size = size;
+                break;
 
-        /// <summary>
-        /// Bind the index buffer
-        /// </summary>
-        public void Bind()
+            case EBufferUsage.StaticDraw:
+            default:
+                // 对于静态数据，只在大小改变时重新分配
+                if (size != Size)
+                {
+                    GL.BufferData(BufferTarget.ElementArrayBuffer, size, data, ConvertBufferUsage(_usage));
+                    Size = size;
+                }
+                else
+                {
+                    GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, size, data);
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Update a portion of the buffer data
+    /// </summary>
+    public unsafe void SetSubData(uint[] data, uint offset)
+    {
+        int size = data.Length * sizeof(uint);
+        if (offset + size > Size)
+            throw new ArgumentException("Data exceeds buffer size");
+
+        Bind();
+        GL.BufferSubData(BufferTarget.ElementArrayBuffer, (IntPtr)offset, size, data);
+    }
+
+    private BufferUsage ConvertBufferUsage(EBufferUsage usage)
+    {
+        return usage switch
         {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handle);
-        }
+            EBufferUsage.StreamDraw => BufferUsage.StreamDraw,
+            EBufferUsage.StaticDraw => BufferUsage.StaticDraw,
+            EBufferUsage.DynamicDraw => BufferUsage.DynamicDraw,
+            _ => throw new ArgumentException($"Unsupported buffer usage: {usage}")
+        };
+    }
 
-        /// <summary>
-        /// Unbind the index buffer
-        /// </summary>
-        public void Unbind()
-        {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-        }
-
-        /// <summary>
-        /// Update buffer data
-        /// </summary>
-        public void SetData(uint[] data, bool dynamic = false)
-        {
-            _count = data.Length;
-            Bind();
-
-            GL.BufferData(
-                BufferTarget.ElementArrayBuffer,
-                data.Length * sizeof(uint),
-                data,
-                ConvertBufferUsage(_usage)
-            );
-        }
-
-        private BufferUsageHint ConvertBufferUsage(EBufferUsage usage)
-        {
-            return usage switch
-            {
-                EBufferUsage.StreamDraw => BufferUsageHint.StreamDraw,
-                EBufferUsage.StaticDraw => BufferUsageHint.StaticDraw,
-                EBufferUsage.DynamicDraw => BufferUsageHint.DynamicDraw,
-                _ => throw new ArgumentException($"Unsupported buffer usage: {usage}")
-            };
-        }
-
-        /// <summary>
-        /// Gets the number of indices in the buffer
-        /// </summary>
-        public int Count => _count;
-
-        /// <summary>
-        /// Gets the OpenGL handle of the buffer
-        /// </summary>
-        public int Handle => _handle;
-
-        /// <summary>
-        /// Dispose the index buffer
-        /// </summary>
-        public void Dispose()
-        {
-            GL.DeleteBuffer(_handle);
-        }
+    /// <summary>
+    /// Dispose the index buffer
+    /// </summary>
+    public void Dispose()
+    {
+        GL.DeleteBuffer(Handle);
     }
 }

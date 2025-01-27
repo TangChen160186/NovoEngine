@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Resources
+namespace NovoEngine.Rendering.Resources
 {
     /// <summary>
     /// Model resource that contains multiple meshes

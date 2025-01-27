@@ -1,6 +1,6 @@
-using OvRenderingCS.Resources;
+using NovoEngine.Rendering.Resources;
 
-namespace OvRenderingCS.Entities
+namespace NovoEngine.Rendering.Entities
 {
     /// <summary>
     /// Base class for drawable entities

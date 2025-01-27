@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Resources.Parsers
+namespace NovoEngine.Rendering.Resources.Parsers
 {
     /// <summary>
     /// Flags for model parsing options

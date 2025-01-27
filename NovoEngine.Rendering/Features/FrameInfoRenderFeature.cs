@@ -1,7 +1,7 @@
-using OvRenderingCS.Data;
-using OvRenderingCS.Entities;
+using NovoEngine.Rendering.Data;
+using NovoEngine.Rendering.Entities;
 
-namespace OvRenderingCS.Features
+namespace NovoEngine.Rendering.Features
 {
     /// <summary>
     /// Render feature for frame information

@@ -1,7 +1,7 @@
-using OvRenderingCS.Buffers;
-using OvRenderingCS.Geometry;
+using NovoEngine.Rendering.Buffers;
+using NovoEngine.Rendering.Geometry;
 
-namespace OvRenderingCS.Resources
+namespace NovoEngine.Rendering.Resources
 {
     /// <summary>
     /// Mesh resource that contains vertex and index data

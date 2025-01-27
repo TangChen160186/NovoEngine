@@ -1,7 +1,7 @@
-using OvRenderingCS.Entities;
-using OvRenderingCS.Resources;
+using NovoEngine.Rendering.Entities;
+using NovoEngine.Rendering.Resources;
 
-namespace OvRenderingCS.Features
+namespace NovoEngine.Rendering.Features
 {
     /// <summary>
     /// Base class for render features

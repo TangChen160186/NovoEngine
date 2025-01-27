@@ -1,6 +1,6 @@
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Entities
+namespace NovoEngine.Rendering.Entities
 {
     /// <summary>
     /// Base class for all renderable entities

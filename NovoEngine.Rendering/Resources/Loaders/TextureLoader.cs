@@ -1,7 +1,4 @@
-using OpenTK.Graphics.OpenGL4;
-using StbImageSharp;
-
-namespace OvRenderingCS.Resources.Loaders
+namespace NovoEngine.Rendering.Resources.Loaders
 {
     /// <summary>
     /// Utility class for loading textures from files

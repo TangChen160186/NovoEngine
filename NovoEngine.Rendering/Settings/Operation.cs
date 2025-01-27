@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Settings
+namespace NovoEngine.Rendering.Settings
 {
     /// <summary>
     /// Defines operations that can be performed on stencil buffer

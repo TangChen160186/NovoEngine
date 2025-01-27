@@ -1,8 +1,7 @@
-using OvRenderingCS.Context;
-using OvRenderingCS.Data;
-using OvRenderingCS.Resources;
+using NovoEngine.Rendering.Context;
+using NovoEngine.Rendering.Data;
 
-namespace OvRenderingCS.Core
+namespace NovoEngine.Rendering.Core
 {
     /// <summary>
     /// A base renderer that provides common functionality for rendering

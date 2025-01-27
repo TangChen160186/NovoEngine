@@ -1,6 +1,4 @@
-using OpenTK.Graphics.OpenGL4;
-
-namespace OvRenderingCS.Resources.Loaders
+namespace NovoEngine.Rendering.Resources.Loaders
 {
     /// <summary>
     /// Utility class for loading shaders from files

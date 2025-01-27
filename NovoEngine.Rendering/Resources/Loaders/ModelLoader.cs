@@ -1,6 +1,6 @@
-using OvRenderingCS.Resources.Parsers;
+using NovoEngine.Rendering.Resources.Parsers;
 
-namespace OvRenderingCS.Resources.Loaders
+namespace NovoEngine.Rendering.Resources.Loaders
 {
     /// <summary>
     /// Utility class for loading models from files

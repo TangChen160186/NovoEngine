@@ -1,6 +1,6 @@
-using OvRenderingCS.Data;
+using NovoEngine.Rendering.Data;
 
-namespace OvRenderingCS.Core
+namespace NovoEngine.Rendering.Core
 {
     /// <summary>
     /// Interface for renderers

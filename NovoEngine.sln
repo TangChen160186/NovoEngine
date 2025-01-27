@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35617.110 d17.13
+VisualStudioVersion = 17.13.35617.110
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovoEngine.Core", "NovoEngine\NovoEngine.Core.csproj", "{37BF915F-F05A-4643-A585-32BEF4AA76E0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovoEngine.Rendering", "NovoEngine.Rendering\NovoEngine.Rendering.csproj", "{2643B690-67D4-4DC2-9E87-17F5549E544A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NovoEngine.Rendering.Test", "NovoEngine.Rendering.Test\NovoEngine.Rendering.Test.csproj", "{EDFB34B7-1AD7-4CA5-B3A2-464FF336220E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2643B690-67D4-4DC2-9E87-17F5549E544A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2643B690-67D4-4DC2-9E87-17F5549E544A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2643B690-67D4-4DC2-9E87-17F5549E544A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDFB34B7-1AD7-4CA5-B3A2-464FF336220E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDFB34B7-1AD7-4CA5-B3A2-464FF336220E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDFB34B7-1AD7-4CA5-B3A2-464FF336220E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDFB34B7-1AD7-4CA5-B3A2-464FF336220E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

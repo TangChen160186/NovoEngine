@@ -1,7 +1,6 @@
-using Assimp;
 using OpenTK.Mathematics;
 
-namespace OvRenderingCS.Resources.Parsers
+namespace NovoEngine.Rendering.Resources.Parsers
 {
     /// <summary>
     /// Model parser using Assimp library

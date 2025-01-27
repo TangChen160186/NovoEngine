@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Settings
+namespace NovoEngine.Rendering.Settings
 {
     /// <summary>
     /// Defines various rendering capabilities that can be enabled or disabled

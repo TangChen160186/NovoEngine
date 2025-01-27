@@ -1,88 +1,97 @@
-using OpenTK.Graphics.OpenGL4;
+using NovoEngine.Rendering.Settings;
+using OpenTK.Graphics.OpenGL;
 
-namespace OvRenderingCS.Buffers
+namespace NovoEngine.Rendering.Buffers;
+
+/// <summary>
+/// OpenGL Vertex Array Object wrapper
+/// </summary>
+public class VertexArray : IDisposable
 {
     /// <summary>
-    /// OpenGL Vertex Array Object wrapper
+    /// Gets the index buffer if one is set
     /// </summary>
-    public class VertexArray : IDisposable
+    public IndexBuffer? IndexBuffer { get; private set; }
+
+    /// <summary>
+    /// Gets the OpenGL handle of the vertex array
+    /// </summary>
+    public int Handle { get; }
+
+    /// <summary>
+    /// Gets whether the vertex array has an index buffer
+    /// </summary>
+    public bool HasIndexBuffer => IndexBuffer != null;
+
+    /// <summary>
+    /// Creates a new vertex array
+    /// </summary>
+    public VertexArray()
     {
-        private readonly int _handle;
-        private readonly Dictionary<int, VertexBuffer> _vertexBuffers;
-        private IndexBuffer? _indexBuffer;
+        Handle = GL.GenVertexArray();
+    }
 
-        /// <summary>
-        /// Creates a new vertex array
-        /// </summary>
-        public VertexArray()
+    /// <summary>
+    /// Bind the vertex array
+    /// </summary>
+    public void Bind()
+    {
+        GL.BindVertexArray(Handle);
+    }
+
+    /// <summary>
+    /// Unbind the vertex array
+    /// </summary>
+    public void Unbind()
+    {
+        GL.BindVertexArray(0);
+    }
+
+    /// <summary>
+    /// Add a vertex buffer with specified attributes
+    /// </summary>
+    public void AddVertexBuffer(VertexBuffer vertexBuffer, uint index, int size, EDataType type, bool normalized,
+        int stride, IntPtr offset)
+    {
+        Bind();
+        vertexBuffer.Bind();
+        GL.EnableVertexAttribArray(index);
+        GL.VertexAttribPointer(index, size, ConvertDataType(type), normalized, stride, offset);
+    }
+
+    /// <summary>
+    /// Set the index buffer
+    /// </summary>
+    public void SetIndexBuffer(IndexBuffer indexBuffer)
+    {
+        Bind();
+        indexBuffer.Bind();
+        IndexBuffer = indexBuffer;
+    }
+
+
+    /// <summary>
+    /// Dispose the vertex array and its resources
+    /// </summary>
+    public void Dispose()
+    {
+        GL.DeleteVertexArray(Handle);
+    }
+
+
+    private VertexAttribPointerType ConvertDataType(EDataType type)
+    {
+        return type switch
         {
-            _handle = GL.GenVertexArray();
-            _vertexBuffers = new Dictionary<int, VertexBuffer>();
-        }
-
-        /// <summary>
-        /// Bind the vertex array
-        /// </summary>
-        public void Bind()
-        {
-            GL.BindVertexArray(_handle);
-        }
-
-        /// <summary>
-        /// Unbind the vertex array
-        /// </summary>
-        public void Unbind()
-        {
-            GL.BindVertexArray(0);
-        }
-
-        /// <summary>
-        /// Add a vertex buffer with specified attributes
-        /// </summary>
-        public void AddVertexBuffer(VertexBuffer vertexBuffer, params (int index, int size, VertexAttribPointerType type, bool normalized, int stride, int offset)[] attributes)
-        {
-            Bind();
-            vertexBuffer.Bind();
-
-            foreach (var (index, size, type, normalized, stride, offset) in attributes)
-            {
-                GL.EnableVertexAttribArray(index);
-                GL.VertexAttribPointer(index, size, type, normalized, stride, offset);
-                _vertexBuffers[index] = vertexBuffer;
-            }
-        }
-
-        /// <summary>
-        /// Set the index buffer
-        /// </summary>
-        public void SetIndexBuffer(IndexBuffer indexBuffer)
-        {
-            Bind();
-            indexBuffer.Bind();
-            _indexBuffer = indexBuffer;
-        }
-
-        /// <summary>
-        /// Gets whether the vertex array has an index buffer
-        /// </summary>
-        public bool HasIndexBuffer => _indexBuffer != null;
-
-        /// <summary>
-        /// Gets the index buffer if one is set
-        /// </summary>
-        public IndexBuffer? IndexBuffer => _indexBuffer;
-
-        /// <summary>
-        /// Gets the OpenGL handle of the vertex array
-        /// </summary>
-        public int Handle => _handle;
-
-        /// <summary>
-        /// Dispose the vertex array and its resources
-        /// </summary>
-        public void Dispose()
-        {
-            GL.DeleteVertexArray(_handle);
-        }
+            EDataType.Byte => VertexAttribPointerType.Byte,
+            EDataType.UnisgnedByte => VertexAttribPointerType.UnsignedByte,
+            EDataType.Short => VertexAttribPointerType.Short,
+            EDataType.UnsignedShort => VertexAttribPointerType.UnsignedShort,
+            EDataType.Int => VertexAttribPointerType.Int,
+            EDataType.UnsignedIn => VertexAttribPointerType.UnsignedInt,
+            EDataType.Float => VertexAttribPointerType.Float,
+            EDataType.Double => VertexAttribPointerType.Double,
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
     }
 }

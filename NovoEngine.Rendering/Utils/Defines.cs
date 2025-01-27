@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Utils
+namespace NovoEngine.Rendering.Utils
 {
     /// <summary>
     /// Common constants and defines

@@ -1,7 +1,6 @@
-using OvRenderingCS.Entities;
-using OvRenderingCS.Resources;
+using NovoEngine.Rendering.Entities;
 
-namespace OvRenderingCS.Features
+namespace NovoEngine.Rendering.Features
 {
     /// <summary>
     /// Render feature for lighting calculations

@@ -1,4 +1,4 @@
-namespace OvRenderingCS.Resources
+namespace NovoEngine.Rendering.Resources
 {
     /// <summary>
     /// Interface for mesh resources
